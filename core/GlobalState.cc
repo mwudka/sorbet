@@ -295,6 +295,17 @@ void GlobalState::initEmpty() {
     ENFORCE(klass == Symbols::Sorbet_Private_StaticSingleton());
     klass = enterClassSymbol(Loc::none(), Symbols::Sorbet_Private_Static(), core::Names::Constants::StubModule());
     ENFORCE(klass == Symbols::StubModule());
+
+    field = enterFieldSymbol(Loc::none(), Symbols::StubModule(), core::Names::Constants::StubField());
+    ENFORCE(field == Symbols::StubField());
+
+    typeMember = enterTypeMember(Loc::none(), Symbols::StubModule(), core::Names::Constants::StubTypeMember(),
+                                 Variance::CoVariant);
+    ENFORCE(typeMember == Symbols::StubTypeMember());
+
+    method = enterMethod(*this, Symbols::StubModule(), core::Names::Constants::StubMethod()).build();
+    ENFORCE(method == Symbols::StubMethod());
+
     klass = enterClassSymbol(Loc::none(), Symbols::Sorbet_Private_Static(), core::Names::Constants::StubMixin());
     ENFORCE(klass == Symbols::StubMixin());
     klass = enterClassSymbol(Loc::none(), Symbols::Sorbet_Private_Static(), core::Names::Constants::PlaceholderMixin());
@@ -789,7 +800,7 @@ void GlobalState::preallocateTables(uint32_t classAndModulesSize, uint32_t metho
 constexpr decltype(GlobalState::STRINGS_PAGE_SIZE) GlobalState::STRINGS_PAGE_SIZE;
 
 MethodRef GlobalState::lookupMethodSymbolWithHash(ClassOrModuleRef owner, NameRef name,
-                                                  const vector<uint32_t> &methodHash) const {
+                                                  const vector<uint32_t> &methodHash, bool stubIfMissing) const {
     ENFORCE(owner.exists(), "looking up symbol from non-existing owner");
     ENFORCE(name.exists(), "looking up symbol with non-existing name");
     auto ownerScope = owner.dataAllowingNone(*this);
@@ -815,7 +826,7 @@ MethodRef GlobalState::lookupMethodSymbolWithHash(ClassOrModuleRef owner, NameRe
         res = ownerScope->members().find(lookupName);
         unique++;
     }
-    return Symbols::noMethod();
+    return stubIfMissing ? Symbols::StubMethod() : Symbols::noMethod();
 }
 
 // look up a symbol whose flags match the desired kind (or ignores the kind filter if `ignoreKind` is `true`).
