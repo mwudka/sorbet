@@ -6,8 +6,8 @@ cc_library(
         "//conditions:default": 1,
     }),
     visibility = ["//visibility:public"],
-    deps = ["//common"] + select({
-        "//tools/config:webasm": ["@com_github_blake2_blake2"],
-        "//conditions:default": ["@com_github_blake2_libb2"],
-    }),
+    deps = [
+        "//common", 
+        "@com_github_blake2_blake2"
+    ],
 )
